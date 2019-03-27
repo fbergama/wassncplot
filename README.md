@@ -3,6 +3,8 @@
 WASSncplot is a small tool to plot NetCDF 3D data generated with
 [WASS](http://www.dais.unive.it/wass) on top of the original image files.
 
+<img src="img/00000068.jpg" width="100%" />
+
 ## Install
 
 WASSncplot requires a Python 3.x interpreter and a set of 3rd-party libraries. The
@@ -70,4 +72,24 @@ Will render the sequence stored in  ```./wass_20140327_0910/3D/wass__20140327_09
 the plane file defined in  ```./wass_20140327_0910/output/000000_wd/plane_avg.txt```, the Cam0 projection matrix defined
 in ```./wass_20140327_0910/output/000000_wd/P0Cam.txt``` and the image data stored in ```./wass_20140327_0910/input/cam0_left/```.  The produced output images will be placed in ```./out```
 
-*** Note for OSX users: *** If using retina display you may get uncorrect results. To solve this, try set ```--pixscale 0.5``` command-line option
+*** Note for OSX users: *** If using retina display you may get uncorrect results. To solve this, try setting ```--pixscale 0.5```
+
+
+## License
+
+```
+Copyright (C) 2019 Filippo Bergamasco 
+
+wassncplot is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+WASS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+```
