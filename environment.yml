@@ -1,0 +1,9 @@
+name: wassncplot
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.6.8=haf84260_0
+  - numpy=1.12.1=py36h8871d66_1
+  - opencv=3.1.0=np112py36_1
+
