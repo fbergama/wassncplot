@@ -46,8 +46,7 @@ vertex = """
             float far = 10000;
             float near = 10;
             float zr = (elevation-zmin)/(zmax-zmin);
-            fcolor = rendermode * vec4( colormap_jet(zr), zalpha ) +
-                     (1-rendermode) * vec4( position.x, position.y, elevation, 1.0 );
+            fcolor = rendermode * vec4( colormap_jet(zr), zalpha )+ (1-rendermode) * vec4( position.x, position.y, elevation, 1.0 );
 
             vec4 paux = P*vec4(position.x, position.y, elevation, 1.0);
             gl_Position = vec4(paux.x / paux.z, -( paux.y/paux.z), 2.0*(paux.z-near)/(far-near)-1, 1.0);
@@ -117,16 +116,19 @@ def gen_triang_indices( M, N ):
 
 class WaveView(app.Canvas):
 
-    def __init__(self, title, width=800, height=600, wireframe=False ):
-        app.Canvas.__init__(self, resizable=False, size=(width, height), show=False)
+    def __init__(self, title, width=800, height=600, wireframe=False, pixel_scale=1.0 ):
+        app.Canvas.__init__(self, resizable=False, size=(width, height), show=False, px_scale=pixel_scale )
+        
         self.width = width
         self.height = height
         self.wireframe = wireframe
 
-        self._rendertex = gloo.Texture2D(shape=self.size[::-1] + (4,), internalformat="rgba32f")
+        self._rendertex = gloo.Texture2D(shape=(height,width,4), internalformat="rgba32f")
+        #self._rendertex = gloo.Texture2D(shape=(height,width,4), internalformat="rgba8")
 
         self._fbo = gloo.FrameBuffer(self._rendertex,
-                                     gloo.RenderBuffer(self.size[::-1]))
+                                    gloo.RenderBuffer((height,width,4) ))
+
         self.quad_bg = gloo.Program(vertex_bg, fragment_bg, count=4)
         self.quad_bg['position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
         self.quad_bg['texcoord'] = [(0, 1), (0, 0), (1, 1), (1, 0)]
@@ -174,7 +176,6 @@ class WaveView(app.Canvas):
         #               blend_func=('src_alpha', 'one_minus_src_alpha'))
 
         with self._fbo:
-
             # Produce the elevation rendering image
             gloo.clear( color=True, depth=True )
             gloo.set_state(depth_test=False, blend=False )
@@ -184,14 +185,16 @@ class WaveView(app.Canvas):
             gloo.set_state(depth_test=True, blend=True, blend_func=('src_alpha', 'one_minus_src_alpha') )
             self.grid["rendermode"] = 1
             self.grid.draw( "lines" if self.wireframe else "triangles", self.index_buff )
-            self._im_zimg = read_pixels( out_type=np.float32 )
+            self._im_zimg = read_pixels( alpha=False, out_type=np.float32 )
+            #self._im_zimg = self._fbo.read( mode="color", alpha=True )
 
             # Produce the xyz image
             gloo.clear( color=True, depth=True )
             gloo.set_state(depth_test=True, blend=False )
             self.grid["rendermode"] = 0
             self.grid.draw( "triangles", self.index_buff_t )
-            self._im_xyzimg = read_pixels( out_type=np.float32 )
+            self._im_xyzimg = read_pixels( alpha=False, out_type=np.float32 )
+            #self._im_xyzimg = self._fbo.read( mode="color", alpha=True )
 
 
 
