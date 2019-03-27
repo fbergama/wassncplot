@@ -8,7 +8,6 @@ from tqdm import tqdm
 import sys
 import os
 import argparse
-import matplotlib.pyplot as plt
 
 
 def RT_from_plane( plane ):
