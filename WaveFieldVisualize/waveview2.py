@@ -86,10 +86,10 @@ def gen_line_indices( M, N ):
     kk1 = kk1.reshape( kk1.size )
     kk2 = kk1+1
     kk4 = kk1+N+1
-    
-    kk123 = np.concatenate( (np.expand_dims(kk1,axis=1), 
-                             np.expand_dims(kk2,axis=1), 
-                             np.expand_dims(kk2,axis=1), 
+
+    kk123 = np.concatenate( (np.expand_dims(kk1,axis=1),
+                             np.expand_dims(kk2,axis=1),
+                             np.expand_dims(kk2,axis=1),
                              np.expand_dims(kk4,axis=1)), axis=1 )
     return kk123.flatten()
 
@@ -102,10 +102,10 @@ def gen_triang_indices( M, N ):
     kk2 = kk1+1
     kk3 = kk1+N
     kk4 = kk1+N+1
-    
-    kk123 = np.concatenate( (np.expand_dims(kk1,axis=1), 
-                             np.expand_dims(kk2,axis=1), 
-                             np.expand_dims(kk4,axis=1), 
+
+    kk123 = np.concatenate( (np.expand_dims(kk1,axis=1),
+                             np.expand_dims(kk2,axis=1),
+                             np.expand_dims(kk4,axis=1),
                              np.expand_dims(kk1,axis=1),
                              np.expand_dims(kk4,axis=1),
                              np.expand_dims(kk3,axis=1)
@@ -118,7 +118,7 @@ class WaveView(app.Canvas):
 
     def __init__(self, title, width=800, height=600, wireframe=False, pixel_scale=1.0 ):
         app.Canvas.__init__(self, resizable=False, size=(width, height), show=False, px_scale=pixel_scale )
-        
+
         self.width = width
         self.height = height
         self.wireframe = wireframe
@@ -140,11 +140,11 @@ class WaveView(app.Canvas):
     def setup_field( self, XX, YY, P0 ):
         """
         Setup the elevation field
-            :param self: 
+            :param self:
             :param XX: X-coordinates grid (in meshgrid format) (type: np.float32)
             :param YY: Y-coordinates grid (in meshgrid format) (type: np.float32)
-            :param P0: Projection matrix from aligned sea-plane to camera 
-        """   
+            :param P0: Projection matrix from aligned sea-plane to camera
+        """
         self.M = XX.shape[0]
         self.N = XX.shape[1]
 
@@ -154,7 +154,7 @@ class WaveView(app.Canvas):
             self.index_buff = gloo.IndexBuffer( np.array( gen_line_indices(self.M,self.N), dtype=np.uint32 ) )
         else:
             self.index_buff = self.index_buff_t
-        
+
 
         XX = XX.reshape( (XX.size,1) ).astype( np.float32 )
         YY = YY.reshape( (YY.size,1) ).astype( np.float32 )
@@ -169,9 +169,9 @@ class WaveView(app.Canvas):
     def on_draw(self, event):
         """
         Automatically invoked when render() is called
-            :param self: 
-            :param event: 
-        """   
+            :param self:
+            :param event:
+        """
         #gloo.set_state(clear_color='white', blend=True,
         #               blend_func=('src_alpha', 'one_minus_src_alpha'))
 

@@ -63,8 +63,10 @@ if __name__ == "__main__":
     parser.add_argument("--zmax", default=+4, type=float, help="Maximum 3D point elevation (used for colorbar limits)")
     parser.add_argument("--alpha", default=0.5, type=float, help="Surface transparency [0..1]")
     parser.add_argument("--pxscale", default=1.0, type=float, help="Desktop pixel scale (set to 0.5 if using OSX with retina display)")
-    parser.add_argument("--wireframe", default=1, type=bool, help="Render surface in wireframe")
-    parser.add_argument("--savexyz", type=bool, help="Save mapping between image pixels and 3D coordinates as numpy data file")
+    parser.add_argument("--wireframe", dest="wireframe", action="store_true", help="Render surface in wireframe")
+    parser.add_argument("--no-wireframe", dest="wireframe", action="store_false", help="Render shaded surface")
+    parser.add_argument("--savexyz", dest="savexyz", action="store_true", help="Save mapping between image pixels and 3D coordinates as numpy data file")
+    parser.set_defaults(wireframe=True)
     args = parser.parse_args()
 
     outdir = args.out
@@ -74,7 +76,7 @@ if __name__ == "__main__":
         sys.exit( -1 )
     else:
         print("Output renderings and data will be saved in: ", outdir)
-    
+
 
     print("Opening netcdf file ", args.ncfile)
     rootgrp = Dataset( args.ncfile, mode="r")
@@ -95,7 +97,7 @@ if __name__ == "__main__":
     kk = load_ocv_matrix( "%s/distortion_00.xml"%args.configdir )
 
 
-    I0 = load_image(args.camdir, args.first_index) 
+    I0 = load_image(args.camdir, args.first_index)
     Iw = np.floor( I0.shape[1] ); Ih = np.floor( I0.shape[0] )
 
     P0Cam =  np.vstack( (np.genfromtxt( args.P0cam)  ,[0, 0, 0, 1] ) )
@@ -110,7 +112,7 @@ if __name__ == "__main__":
                         [ 0     , 2.0/Ih, -1, 0],
                         [ 0,      0,       1, 0],
                         [ 0,      0,       0, 1]], dtype=np.float )
-    
+
     SCALEi = 1.0/stereo_baseline
     P0plane = toNorm @ P0Cam @ RTplane @ np.diag((SCALEi,SCALEi,-SCALEi, 1))
 
@@ -118,15 +120,15 @@ if __name__ == "__main__":
 
     print("Rendering grid data...")
     pbar = tqdm( range(args.first_index, args.last_index), file=sys.stdout, unit="frames" )
-    
+
     for data_idx in pbar:
 
-        I0 = load_image(args.camdir, data_idx) 
+        I0 = load_image(args.camdir, data_idx)
         I0 = cv.undistort( I0, K0, kk )
         I0 = np.ascontiguousarray( cv.resize( I0,(0,0),fx=1.0/args.scale,fy=1.0/args.scale ) )
 
         if waveview is None:
-            waveview = WaveView( title="Wave field" ,width=I0.shape[1], height=I0.shape[0], wireframe=not (args.wireframe is None), pixel_scale=args.pxscale )
+            waveview = WaveView( title="Wave field" ,width=I0.shape[1], height=I0.shape[0], wireframe=args.wireframe, pixel_scale=args.pxscale )
             waveview.setup_field( XX, YY, P0plane.T )
             waveview.set_zrange( args.zmin, args.zmax, args.alpha )
 
