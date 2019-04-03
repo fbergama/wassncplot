@@ -19,6 +19,14 @@ $ conda activate wassncplot
 ```
 
 
+Alternatively, install pipenv and run
+
+```
+$ pipenv install 
+$ pipenv shell
+```
+
+
 ## Usage
 
 WASSncplot is a command-line tool. You can get a description of the available program
