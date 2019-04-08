@@ -9,6 +9,7 @@ import sys
 import os
 import argparse
 import glob
+import scipy.io
 
 
 def RT_from_plane( plane ):
@@ -136,7 +137,7 @@ if __name__ == "__main__":
         img, img_xyz = waveview.render( I0, ZZ_data )
 
         if args.savexyz:
-            np.save( '%s/%08d'%(outdir,data_idx), img_xyz)
+            scipy.io.savemat( '%s/%08d'%(outdir,data_idx), {"px_2_3D": img_xyz} )
 
         img = (img*255).astype( np.uint8 )
         img = cv.cvtColor( img, cv.COLOR_RGB2BGR )
