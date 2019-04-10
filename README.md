@@ -3,7 +3,7 @@
 WASSncplot is a small tool to plot NetCDF 3D data generated with
 [WASS](http://www.dais.unive.it/wass) on top of the original image files.
 
-<img src="img/00000068.jpg" width="100%" />
+<img src="img/00000249.jpg" width="100%" />
 
 ## Install
 
@@ -14,7 +14,7 @@ Once conda is installed, open a terminal and type the following:
 
 
 ```
-$ conda env create -f environment.yml
+$ conda env create -f environment.<system>.yml
 $ conda activate wassncplot
 ```
 
