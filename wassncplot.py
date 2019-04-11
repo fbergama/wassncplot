@@ -67,6 +67,7 @@ if __name__ == "__main__":
     parser.add_argument("--wireframe", dest="wireframe", action="store_true", help="Render surface in wireframe")
     parser.add_argument("--no-wireframe", dest="wireframe", action="store_false", help="Render shaded surface")
     parser.add_argument("--savexyz", dest="savexyz", action="store_true", help="Save mapping between image pixels and 3D coordinates as numpy data file")
+    parser.add_argument("--saveimg", dest="saveimg", action="store_true", help="Save the undistorted image (without the superimposed grid)")
     parser.set_defaults(wireframe=True)
     args = parser.parse_args()
 
@@ -125,8 +126,8 @@ if __name__ == "__main__":
     for data_idx in pbar:
 
         I0 = load_image(args.camdir, data_idx)
-        I0 = cv.undistort( I0, K0, kk )
-        I0 = np.ascontiguousarray( cv.resize( I0,(0,0),fx=1.0/args.scale,fy=1.0/args.scale ) )
+        I0u = cv.undistort( I0, K0, kk )
+        I0 = np.ascontiguousarray( cv.resize( I0u,(0,0),fx=1.0/args.scale,fy=1.0/args.scale ) )
 
         if waveview is None:
             waveview = WaveView( title="Wave field" ,width=I0.shape[1], height=I0.shape[0], wireframe=args.wireframe, pixel_scale=args.pxscale )
@@ -141,4 +142,7 @@ if __name__ == "__main__":
 
         img = (img*255).astype( np.uint8 )
         img = cv.cvtColor( img, cv.COLOR_RGB2BGR )
-        cv.imwrite('%s/%08d.png'%(outdir,data_idx), img )
+        cv.imwrite('%s/%08d_grid.png'%(outdir,data_idx), img )
+
+        if args.saveimg:
+            cv.imwrite('%s/%08d.png'%(outdir,data_idx), I0u )
