@@ -1,0 +1,52 @@
+name: wassncplot
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - blas=1.0=mkl
+  - bzip2=1.0.6=hfa6e2cd_1002
+  - ca-certificates=2019.3.9=hecc5488_0
+  - certifi=2019.3.9=py37_0
+  - cftime=1.0.3.4=py37h452e1ab_1001
+  - curl=7.65.1=h4496350_0
+  - glfw=3.2.1=h2fa13f4_0
+  - hdf4=4.2.13=hf8e6fe8_1002
+  - hdf5=1.10.5=nompi_hcc15c50_1100
+  - icc_rt=2019.0.0=h0cc432a_1
+  - icu=58.1=vc14_0
+  - intel-openmp=2019.4=245
+  - jpeg=9c=hfa6e2cd_1001
+  - krb5=1.16.3=hdd46e55_1001
+  - libblas=3.8.0=8_mkl
+  - libcblas=3.8.0=8_mkl
+  - libcurl=7.65.1=h4496350_0
+  - liblapack=3.8.0=8_mkl
+  - libnetcdf=4.6.2=ha953453_1002
+  - libpng=1.6.37=h7602738_0
+  - libssh2=1.8.2=h642c060_2
+  - libtiff=4.0.10=h6512ee2_1003
+  - libwebp=1.0.2=hfa6e2cd_2
+  - lz4-c=1.8.3=he025d50_1001
+  - mkl=2019.4=245
+  - netcdf4=1.5.1.2=py37h8c66456_1
+  - numpy=1.16.3=py37h873a0b8_0
+  - opencv=3.4.4=py37ha957b10_1205
+  - openssl=1.1.1b=hfa6e2cd_2
+  - pip=19.1.1=py37_0
+  - python=3.7.3=hb12ca83_0
+  - qt=5.9.7=hc6833c9_1
+  - scipy=1.2.1=py37h29ff71c_0
+  - setuptools=41.0.1=py37_0
+  - sqlite=3.28.0=hfa6e2cd_0
+  - tk=8.6.9=hfa6e2cd_1002
+  - tqdm=4.32.1=py_0
+  - vc=14.1=h0510ff6_4
+  - vispy=0.5.3=py37h39e3cac_1000
+  - vs2015_runtime=14.15.26706=h3a45250_4
+  - wheel=0.33.4=py37_0
+  - wincertstore=0.2=py37_1002
+  - xz=5.2.4=h2fa13f4_1001
+  - zlib=1.2.11=h2fa13f4_1004
+  - zstd=1.4.0=hd8a0e53_0
+
+
