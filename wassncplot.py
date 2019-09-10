@@ -68,6 +68,8 @@ if __name__ == "__main__":
     parser.add_argument("--no-wireframe", dest="wireframe", action="store_false", help="Render shaded surface")
     parser.add_argument("--savexyz", dest="savexyz", action="store_true", help="Save mapping between image pixels and 3D coordinates as numpy data file")
     parser.add_argument("--saveimg", dest="saveimg", action="store_true", help="Save the undistorted image (without the superimposed grid)")
+    parser.add_argument("--ffmpeg", dest="ffmpeg", action="store_true", help="Call ffmpeg to create a sequence video file")
+    parser.add_argument("--ffmpeg-fps", dest="ffmpeg_fps", default=10, type=int, help="Sequence framerate")
     parser.set_defaults(wireframe=True)
     args = parser.parse_args()
 
@@ -146,3 +148,10 @@ if __name__ == "__main__":
 
         if args.saveimg:
             cv.imwrite('%s/%08d.png'%(outdir,data_idx), I0u )
+
+
+    if args.ffmpeg:
+        import subprocess
+        callarr = ["ffmpeg", "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%08d_grid.png"%(outdir), "-c:v", "libx264", "-vf", 'fps=25,format=yuv420p,scale=614x514', "%s/video.mp4"%outdir ]
+        print("Calling ", callarr)
+        subprocess.run(callarr)
