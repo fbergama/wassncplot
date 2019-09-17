@@ -58,6 +58,7 @@ if __name__ == "__main__":
     parser.add_argument("out", help="Where to store the produced images")
     parser.add_argument("-f", "--first_index", default=0, type=int, help="First data index to process")
     parser.add_argument("-l", "--last_index", default=1, type=int, help="Last data index to process")
+    parser.add_argument("-s", "--step_index", default=1, type=int, help="Sequence step")
     parser.add_argument("-b", "--baseline", type=float, help="Baseline of the stereo system (use this option to override the baseline value stored in the netcdf file)")
     parser.add_argument("--scale", default=2, type=float, help="Output image reduction scale")
     parser.add_argument("--zmin", default=-4, type=float, help="Minimum 3D point elevation (used for colorbar limits)")
@@ -69,7 +70,7 @@ if __name__ == "__main__":
     parser.add_argument("--savexyz", dest="savexyz", action="store_true", help="Save mapping between image pixels and 3D coordinates as numpy data file")
     parser.add_argument("--saveimg", dest="saveimg", action="store_true", help="Save the undistorted image (without the superimposed grid)")
     parser.add_argument("--ffmpeg", dest="ffmpeg", action="store_true", help="Call ffmpeg to create a sequence video file")
-    parser.add_argument("--ffmpeg-fps", dest="ffmpeg_fps", default=10, type=int, help="Sequence framerate")
+    parser.add_argument("--ffmpeg-fps", dest="ffmpeg_fps", default=10.0, type=float, help="Sequence framerate")
     parser.set_defaults(wireframe=True)
     args = parser.parse_args()
 
@@ -123,7 +124,7 @@ if __name__ == "__main__":
     waveview = None
 
     print("Rendering grid data...")
-    pbar = tqdm( range(args.first_index, args.last_index), file=sys.stdout, unit="frames" )
+    pbar = tqdm( range(args.first_index, args.last_index, args.step_index), file=sys.stdout, unit="frames" )
 
     for data_idx in pbar:
 
@@ -152,6 +153,7 @@ if __name__ == "__main__":
 
     if args.ffmpeg:
         import subprocess
-        callarr = ["ffmpeg", "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%08d_grid.png"%(outdir), "-c:v", "libx264", "-vf", 'fps=25,format=yuv420p,scale=614x514', "%s/video.mp4"%outdir ]
+        callarr = ["ffmpeg", "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%*.png"%(outdir), "-c:v", "libx264", "-vf", 'fps=25,format=yuv420p,scale=614x514', "%s/video.mp4"%outdir ]
+
         print("Calling ", callarr)
         subprocess.run(callarr)
