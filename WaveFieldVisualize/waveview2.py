@@ -45,8 +45,9 @@ vertex = """
         {
             float far = 10000;
             float near = 10;
+            float zpt = elevation==0.0f?0.0f:1.0f;
             float zr = (elevation-zmin)/(zmax-zmin);
-            fcolor = rendermode * vec4( colormap_jet(zr), zalpha )+ (1-rendermode) * vec4( position.x, position.y, elevation, 1.0 );
+            fcolor = rendermode * vec4( colormap_jet(zr), zalpha*zpt )+ (1-rendermode) * vec4( position.x, position.y, elevation, 1.0 );
 
             vec4 paux = P*vec4(position.x, position.y, elevation, 1.0);
             gl_Position = vec4(paux.x / paux.z, -( paux.y/paux.z), 2.0*(paux.z-near)/(far-near)-1, 1.0);

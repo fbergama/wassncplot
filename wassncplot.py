@@ -98,6 +98,7 @@ if __name__ == "__main__":
     ZZ = rootgrp["Z"]
 
 
+
     K0 = load_ocv_matrix( "%s/intrinsics_00.xml"%args.configdir )
     kk = load_ocv_matrix( "%s/distortion_00.xml"%args.configdir )
 
@@ -138,6 +139,10 @@ if __name__ == "__main__":
             waveview.set_zrange( args.zmin, args.zmax, args.alpha )
 
         ZZ_data = np.squeeze( np.array( ZZ[data_idx,:,:] ) )/1000.0
+        #mask = (ZZ_data == 0.0)
+        #ZZ_dil = cv.dilate( ZZ_data, np.ones((3,3)))
+        #ZZ_data[mask]=ZZ_dil
+
         img, img_xyz = waveview.render( I0, ZZ_data )
 
         if args.savexyz:
