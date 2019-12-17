@@ -59,6 +59,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--first_index", default=0, type=int, help="First data index to process")
     parser.add_argument("-l", "--last_index", default=1, type=int, help="Last data index to process")
     parser.add_argument("-s", "--step_index", default=1, type=int, help="Sequence step")
+    parser.add_argument("-sd", "--step_data_index", default=1, type=int, help="Sequence data step")
     parser.add_argument("-b", "--baseline", type=float, help="Baseline of the stereo system (use this option to override the baseline value stored in the netcdf file)")
     parser.add_argument("--scale", default=2, type=float, help="Output image reduction scale")
     parser.add_argument("--zmin", default=-4, type=float, help="Minimum 3D point elevation (used for colorbar limits)")
@@ -127,9 +128,11 @@ if __name__ == "__main__":
     print("Rendering grid data...")
     pbar = tqdm( range(args.first_index, args.last_index, args.step_index), file=sys.stdout, unit="frames" )
 
-    for data_idx in pbar:
+    data_idx = args.first_index
 
-        I0 = load_image(args.camdir, data_idx)
+    for image_idx in pbar:
+
+        I0 = load_image(args.camdir, image_idx)
         I0u = cv.undistort( I0, K0, kk )
         I0 = np.ascontiguousarray( cv.resize( I0u,(0,0),fx=1.0/args.scale,fy=1.0/args.scale ) )
 
@@ -146,19 +149,20 @@ if __name__ == "__main__":
         img, img_xyz = waveview.render( I0, ZZ_data )
 
         if args.savexyz:
-            scipy.io.savemat( '%s/%08d'%(outdir,data_idx), {"px_2_3D": img_xyz} )
+            scipy.io.savemat( '%s/%08d'%(outdir,image_idx), {"px_2_3D": img_xyz} )
 
         img = (img*255).astype( np.uint8 )
         img = cv.cvtColor( img, cv.COLOR_RGB2BGR )
-        cv.imwrite('%s/%08d_grid.png'%(outdir,data_idx), img )
+        cv.imwrite('%s/%08d_grid.png'%(outdir,image_idx), img )
 
         if args.saveimg:
-            cv.imwrite('%s/%08d.png'%(outdir,data_idx), I0u )
+            cv.imwrite('%s/%08d.png'%(outdir,image_idx), I0u )
 
+        data_idx += args.step_data_index
 
     if args.ffmpeg:
         import subprocess
-        callarr = ["ffmpeg", "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%*.png"%(outdir), "-c:v", "libx264", "-vf", 'fps=25,format=yuv420p,scale=614x514', "%s/video.mp4"%outdir ]
+        callarr = ["ffmpeg", "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%*.png"%(outdir), "-c:v", "libx264", "-vf", 'fps=25,format=yuv420p,scale=614x514', "-preset", "slow", "-crf", "22", "%s/video.mp4"%outdir ]
 
         print("Calling ", callarr)
         subprocess.run(callarr)
