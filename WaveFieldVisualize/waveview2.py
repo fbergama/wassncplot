@@ -44,7 +44,7 @@ vertex = """
         void main()
         {
             float far = 10000;
-            float near = 10;
+            float near = 1;
             float zpt = elevation==0.0f?0.0f:1.0f;
             float zr = (elevation-zmin)/(zmax-zmin);
             fcolor = rendermode * vec4( colormap_jet(zr), zalpha*zpt )+ (1-rendermode) * vec4( position.x, position.y, elevation, 1.0 );
