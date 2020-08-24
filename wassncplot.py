@@ -150,7 +150,7 @@ if __name__ == "__main__":
         img, img_xyz = waveview.render( I0, ZZ_data )
 
         if args.savexyz:
-            scipy.io.savemat( '%s/%08d'%(outdir,image_idx), {"px_2_3D": img_xyz} )
+            scipy.io.savemat( '%s/%08d.mat'%(outdir,image_idx), {"px_2_3D": img_xyz} )
 
         img = (img*255).astype( np.uint8 )
         img = cv.cvtColor( img, cv.COLOR_RGB2BGR )
