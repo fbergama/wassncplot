@@ -26,6 +26,9 @@ $ pipenv install
 $ pipenv shell
 ```
 
+## Test it via docker
+
+To use it via Docker pull the official ```fbergama/wassncplot``` image. Look at the ```test/``` dir for more info.
 
 ## Usage
 
