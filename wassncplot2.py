@@ -92,6 +92,8 @@ if __name__ == "__main__":
         print("Zmean not found in NC file, assuming 0.0")
 
 
+    print("Zmin/Zmax/Zmean: %f / %f / %f"%(args.zmin,args.zmax,zmean) )
+
     if args.last_index > 0:
         nframes = args.last_index
 
