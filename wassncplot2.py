@@ -25,8 +25,8 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--step_index", default=1, type=int, help="Sequence step")
     parser.add_argument("-sd", "--step_data_index", default=1, type=int, help="Sequence data step")
     parser.add_argument("-b", "--baseline", type=float, help="Baseline of the stereo system (use this option to override the baseline value stored in the netcdf file)")
-    parser.add_argument("--zmin", default=-3, type=float, help="Minimum 3D point elevation (used for colorbar limits)")
-    parser.add_argument("--zmax", default=+3, type=float, help="Maximum 3D point elevation (used for colorbar limits)")
+    parser.add_argument("--zmin", type=float, help="Minimum 3D point elevation (used for colorbar limits)")
+    parser.add_argument("--zmax", type=float, help="Maximum 3D point elevation (used for colorbar limits)")
     parser.add_argument("--alpha", default=0.5, type=float, help="Surface transparency [0..1]")
     parser.add_argument("--pxscale", default=1.0, type=float, help="Desktop pixel scale (set to 0.5 if using OSX with retina display)")
     parser.add_argument("--wireframe", dest="wireframe", action="store_true", help="Render surface in wireframe")
@@ -65,6 +65,31 @@ if __name__ == "__main__":
 
     Iw, Ih = rootgrp["meta"].image_width, rootgrp["meta"].image_height
 
+    if args.zmin is None:
+        try:
+            args.zmin = rootgrp["meta"].zmin
+        except:
+            print("zmin not specified from command line and not found in NC file, aborting.")
+            sys.exit(-1)
+    
+    if args.zmax is None:
+        try:
+            args.zmax = rootgrp["meta"].zmax
+        except:
+            print("zmax not specified from command line and not found in NC file, aborting.")
+            sys.exit(-1)
+
+    if np.abs(args.zmin)>np.abs(args.zmax):
+        args.zmax = -args.zmin
+    else:
+        args.zmin = -args.zmax
+
+    zmean = 0
+    try:
+        zmean = rootgrp["meta"].zmean
+    except:
+        print("Zmean not found in NC file, assuming 0.0")
+
 
     if args.last_index > 0:
         nframes = args.last_index
@@ -86,7 +111,7 @@ if __name__ == "__main__":
             waveview.setup_field( XX, YY, P0plane.T )
             waveview.set_zrange( args.zmin, args.zmax, args.alpha )
 
-        ZZ_data = np.squeeze( np.array( ZZ[data_idx,:,:] ) )/1000.0
+        ZZ_data = np.squeeze( np.array( ZZ[data_idx,:,:] ) )/1000.0 - zmean
         #mask = (ZZ_data == 0.0)
         #ZZ_dil = cv.dilate( ZZ_data, np.ones((3,3)))
         #ZZ_data[mask]=ZZ_dil
