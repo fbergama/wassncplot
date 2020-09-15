@@ -34,6 +34,7 @@ if __name__ == "__main__":
     parser.add_argument("--savexyz", dest="savexyz", action="store_true", help="Save mapping between image pixels and 3D coordinates as numpy data file")
     parser.add_argument("--saveimg", dest="saveimg", action="store_true", help="Save the undistorted image (without the superimposed grid)")
     parser.add_argument("--ffmpeg", dest="ffmpeg", action="store_true", help="Call ffmpeg to create a sequence video file")
+    parser.add_argument("--ffmpeg-delete-frames", dest="ffmpegdelete", action="store_true", help="Delete the produced frames after running ffmpeg")
     parser.add_argument("--ffmpeg-fps", dest="ffmpeg_fps", default=10.0, type=float, help="Sequence framerate")
     parser.set_defaults(wireframe=True)
     args = parser.parse_args()
@@ -136,3 +137,9 @@ if __name__ == "__main__":
 
         print("Calling ", callarr)
         subprocess.run(callarr)
+
+        if args.ffmpegdelete:
+            img_files = glob.glob( "%s/*.png"%outdir )
+            for imgfile in img_files:
+                os.remove( imgfile )
+
