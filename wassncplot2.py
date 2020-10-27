@@ -112,7 +112,7 @@ if __name__ == "__main__":
         if waveview is None:
             waveview = WaveView( title="Wave field",width=I0.shape[1],height=I0.shape[0], wireframe=args.wireframe, pixel_scale=args.pxscale )
             waveview.setup_field( XX, YY, P0plane.T )
-            waveview.set_zrange( args.zmin, args.zmax, args.alpha )
+            waveview.set_zrange( args.zmin-zmean, args.zmax-zmean, args.alpha )
 
         ZZ_data = np.squeeze( np.array( ZZ[data_idx,:,:] ) )/1000.0 - zmean
         #mask = (ZZ_data == 0.0)
