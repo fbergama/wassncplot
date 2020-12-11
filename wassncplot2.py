@@ -91,8 +91,10 @@ if __name__ == "__main__":
     except:
         print("Zmean not found in NC file, assuming 0.0")
 
+    zrange = args.zmax - args.zmin
 
-    print("Zmin/Zmax/Zmean: %f / %f / %f"%(args.zmin,args.zmax,zmean) )
+    print("Zmin/Zmax/Zmean: %3.3f / %3.3f / %3.3f"%(args.zmin,args.zmax,zmean) )
+    print("Range: %f"%zrange)
 
     if args.last_index > 0:
         nframes = args.last_index
@@ -112,7 +114,7 @@ if __name__ == "__main__":
         if waveview is None:
             waveview = WaveView( title="Wave field",width=I0.shape[1],height=I0.shape[0], wireframe=args.wireframe, pixel_scale=args.pxscale )
             waveview.setup_field( XX, YY, P0plane.T )
-            waveview.set_zrange( args.zmin-zmean, args.zmax-zmean, args.alpha )
+            waveview.set_zrange( -zrange/2.0, zrange/2, args.alpha )
 
         ZZ_data = np.squeeze( np.array( ZZ[data_idx,:,:] ) )/1000.0 - zmean
         #mask = (ZZ_data == 0.0)
