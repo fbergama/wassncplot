@@ -139,7 +139,11 @@ if __name__ == "__main__":
         import subprocess
         _, outname = os.path.split(args.ncfile)
 
-        callarr = ["ffmpeg.exe", "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%08d_grid.png"%(outdir), "-c:v", "libx264", "-vf", 'fps=25,format=yuv420p,scale=614x514', "-preset", "slow", "-crf", "22", "%s/%s.mp4"%(outdir,outname) ]
+        ffmpeg_exe = "ffmpeg"
+        if os.name == "nt":
+            ffmpeg_exe += ".exe"
+
+        callarr = [ffmpeg_exe, "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%08d_grid.png"%(outdir), "-c:v", "libx264", "-vf", 'fps=25,format=yuv420p,scale=614x514', "-preset", "slow", "-crf", "22", "%s/%s.mp4"%(outdir,outname) ]
 
         print("Calling ", callarr)
         subprocess.run(callarr)
