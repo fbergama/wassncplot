@@ -2,6 +2,7 @@ from vispy import gloo
 from vispy import app
 from vispy.gloo.util import _screenshot
 from vispy.gloo.wrappers import read_pixels
+import time
 import cv2 as cv
 import numpy as np
 
@@ -133,9 +134,9 @@ class WaveView(app.Canvas):
         self.quad_bg = gloo.Program(vertex_bg, fragment_bg, count=4)
         self.quad_bg['position'] = [(-1, -1), (-1, +1), (+1, -1), (+1, +1)]
         self.quad_bg['texcoord'] = [(0, 1), (0, 0), (1, 1), (1, 0)]
+        self._im_zimg = None
 
         gloo.set_clear_color('white')
-        self.update()
 
 
     def setup_field( self, XX, YY, P0 ):
@@ -165,6 +166,8 @@ class WaveView(app.Canvas):
         self.set_zrange( -1, 1 )
         self.grid["P"] = P0.reshape( (P0.size,1) ).astype(np.float32)
         self.grid["elevation"] = np.zeros( XX.size, dtype=np.float32 )
+        self.show()
+        self.update()
 
 
     def on_draw(self, event):
@@ -214,8 +217,12 @@ class WaveView(app.Canvas):
         self.quad_bg['texture'] = gloo.Texture2D(image)
         elevations = elevations.reshape( (elevations.size,1) ) # Reshape elevations to column array
         self.grid["elevation"] = np.squeeze(elevations).astype(np.float32)
-        self.update()
-        app.process_events()
+        self._im_zimg = None
+        while self._im_zimg is None:
+            self.update()
+            app.process_events()
+            time.sleep(0.1)
+
         return self._im_zimg, self._im_xyzimg
         #return app.Canvas.render( self )
 

@@ -26,6 +26,17 @@ $ pipenv install
 $ pipenv shell
 ```
 
+## Run wassncplot on a headless system
+
+To use wassncplot while connected remotely via ssh, launch Xvfb first:
+
+```
+sudo Xvfb :1 -ac -screen 0 1280x720x24 
+```
+
+and then set export the DISPLAY environment variable `export DISPLAY=:1` before running wassncplot.
+
+
 ## Test it via docker
 
 To use it via Docker pull the official ```fbergama/wassncplot``` image. Look at the ```test/``` dir for more info.
