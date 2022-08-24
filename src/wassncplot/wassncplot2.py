@@ -3,7 +3,7 @@ from netCDF4 import Dataset
 import numpy as np
 import scipy.io as sio
 import cv2 as cv
-from WaveFieldVisualize.waveview2 import WaveView
+from .WaveFieldVisualize.waveview2 import WaveView
 from tqdm import tqdm
 import sys
 import os
@@ -12,10 +12,11 @@ import glob
 import scipy.io
 
 
+VERSION="2.0.0"
 
 
 
-if __name__ == "__main__":
+def wassncplot_main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("ncfile", help="Input NetCDF4 file")
@@ -72,7 +73,7 @@ if __name__ == "__main__":
         except:
             print("zmin not specified from command line and not found in NC file, aborting.")
             sys.exit(-1)
-    
+
     if args.zmax is None:
         try:
             args.zmax = rootgrp["meta"].zmax
@@ -112,7 +113,7 @@ if __name__ == "__main__":
         #I0 = cv.resize( I0, dsize=None, fx=2, fy=2)
 
         if waveview is None:
-            waveview = WaveView( title="Wave field",width=I0.shape[1],height=I0.shape[0], wireframe=args.wireframe, pixel_scale=args.pxscale )
+            waveview = WaveView( title="Wave field", width=I0.shape[1], height=I0.shape[0], wireframe=args.wireframe, pixel_scale=args.pxscale )
             waveview.setup_field( XX, YY, P0plane.T )
             waveview.set_zrange( -zrange/2.0, zrange/2, args.alpha )
 

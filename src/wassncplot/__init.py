@@ -1,0 +1,1 @@
+from .wassncplot import VERSION

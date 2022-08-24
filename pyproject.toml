@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wassncplot"
+description = "WASSncplot is a small tool to plot NetCDF 3D data generated with WASS on top of the original image files."
+readme = "README.md"
+requires-python = ">=3.9"
+keywords = ["WASS"]
+license = {text = "GPL3"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "numpy", "scipy", "pyopengl", "PyQt6", "matplotlib", "vispy", "tqdm", "opencv-python>=4.0", "netcdf4"
+]
+dynamic = ["version"]
+
+
+[project.scripts]
+wassncplot = "wassncplot.wassncplot2:wassncplot_main"
+
+[tool.setuptools.dynamic]
+version = {attr = "wassncplot.wassncplot2.VERSION"}
+
+# ... other project metadata fields as specified in:
+#     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
