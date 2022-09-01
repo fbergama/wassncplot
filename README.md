@@ -3,7 +3,7 @@
 WASSncplot is a small tool to plot NetCDF 3D data generated with
 [WASS](http://www.dais.unive.it/wass) and [wassgridsurface](https://pypi.org/project/wassgridsurface/) on top of the original image files.
 
-<img src="img/00000249.jpg" width="100%" />
+<img src="https://www.dais.unive.it/wass/files/00000249.jpg" width="100%" />
 
 ## Install
 
