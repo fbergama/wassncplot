@@ -12,11 +12,15 @@ import glob
 import scipy.io
 
 
-VERSION="2.0.0"
+VERSION="2.0.1"
 
 
 
 def wassncplot_main():
+
+    print(" wassncplot v.", VERSION )
+    print("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\nCopyright (C) Filippo Bergamasco 2022 \n")
+
 
     parser = argparse.ArgumentParser()
     parser.add_argument("ncfile", help="Input NetCDF4 file")
@@ -144,7 +148,7 @@ def wassncplot_main():
         if os.name == "nt":
             ffmpeg_exe += ".exe"
 
-        callarr = [ffmpeg_exe, "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%08d_grid.png"%(outdir), "-c:v", "libx264", "-vf", 'fps=25,format=yuv420p,scale=614x514', "-preset", "slow", "-crf", "22", "%s/%s.mp4"%(outdir,outname) ]
+        callarr = [ffmpeg_exe, "-y", "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%08d_grid.png"%(outdir), "-c:v", "libx264", "-vf", 'fps=25,format=yuv420p,scale=614x514', "-preset", "slow", "-crf", "22", "%s/%s.mp4"%(outdir,outname) ]
 
         print("Calling ", callarr)
         subprocess.run(callarr)

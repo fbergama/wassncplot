@@ -9,14 +9,24 @@ readme = "README.md"
 requires-python = ">=3.9"
 keywords = ["WASS"]
 license = {text = "GPL3"}
+authors = [
+  {email = "filippo.bergamasco@unive.it"},
+  {name = "Filippo Bergamasco"}
+]
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Development Status :: 4 - Beta"
 ]
 dependencies = [
     "numpy", "scipy", "pyopengl", "PyQt6", "matplotlib", "vispy", "tqdm", "opencv-python>=4.0", "netcdf4"
 ]
 dynamic = ["version"]
 
+[project.urls]
+#homepage = "https://sites.google.com/unive.it/wass"
+#documentation = "https://readthedocs.org"
+repository = "https://github.com/fbergama/wassncplot"
+#changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
 
 [project.scripts]
 wassncplot = "wassncplot.wassncplot2:wassncplot_main"
