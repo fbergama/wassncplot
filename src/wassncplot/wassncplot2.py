@@ -12,7 +12,7 @@ import glob
 import scipy.io
 
 
-VERSION="2.0.3"
+VERSION="2.0.4"
 
 
 
@@ -33,7 +33,7 @@ def wassncplot_main():
     parser.add_argument("--zmin", type=float, help="Minimum 3D point elevation (used for colorbar limits)")
     parser.add_argument("--zmax", type=float, help="Maximum 3D point elevation (used for colorbar limits)")
     parser.add_argument("--alpha", default=0.5, type=float, help="Surface transparency [0..1]")
-    parser.add_argument("--pxscale", default=1.0, type=float, help="Desktop pixel scale (set to 0.5 if using OSX with retina display)")
+    parser.add_argument("--pxscale", default=1, type=int, help="A scale factor to apply between logical and physical pixels in addition to the actual scale factor determined by the backend.")
     parser.add_argument("--wireframe", dest="wireframe", action="store_true", help="Render surface in wireframe")
     parser.add_argument("--no-wireframe", dest="wireframe", action="store_false", help="Render shaded surface")
     parser.add_argument("--savexyz", dest="savexyz", action="store_true", help="Save mapping between image pixels and 3D coordinates as numpy data file")

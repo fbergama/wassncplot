@@ -118,8 +118,8 @@ def gen_triang_indices( M, N ):
 
 class WaveView(app.Canvas):
 
-    def __init__(self, title, width=800, height=600, wireframe=False, pixel_scale=1.0 ):
-        app.Canvas.__init__(self, resizable=False, size=(width, height), show=False, px_scale=pixel_scale )
+    def __init__(self, title, width=800, height=600, wireframe=False, pixel_scale=1 ):
+        app.Canvas.__init__(self, resizable=False, size=(int(width), int(height)), show=False, px_scale=int(pixel_scale) )
 
         self.width = width
         self.height = height

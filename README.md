@@ -32,16 +32,11 @@ WASSncplot is a command-line tool. You can get a description of the available pr
 arguments with the following command: 
 
 ```
-$ wassncplot -h
-
-
- wassncplot v. 2.0.1
+ wassncplot v. 2.0.4
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 Copyright (C) Filippo Bergamasco 2022
 
-usage: wassncplot [-h] [-f FIRST_INDEX] [-l LAST_INDEX] [-s STEP_INDEX] [-sd STEP_DATA_INDEX] [-b BASELINE] [--zmin ZMIN] [--zmax ZMAX] [--alpha ALPHA] [--pxscale PXSCALE]
-                  [--wireframe] [--no-wireframe] [--savexyz] [--saveimg] [--ffmpeg] [--ffmpeg-delete-frames] [--ffmpeg-fps FFMPEG_FPS]
-                  ncfile out
+usage: __main__.py [-h] [-f FIRST_INDEX] [-l LAST_INDEX] [-s STEP_INDEX] [-sd STEP_DATA_INDEX] [-b BASELINE] [--zmin ZMIN] [--zmax ZMAX] [--alpha ALPHA] [--pxscale PXSCALE] [--wireframe] [--no-wireframe] [--savexyz] [--saveimg] [--ffmpeg] [--ffmpeg-delete-frames] [--ffmpeg-fps FFMPEG_FPS] ncfile out
 
 positional arguments:
   ncfile                Input NetCDF4 file
@@ -62,7 +57,7 @@ optional arguments:
   --zmin ZMIN           Minimum 3D point elevation (used for colorbar limits)
   --zmax ZMAX           Maximum 3D point elevation (used for colorbar limits)
   --alpha ALPHA         Surface transparency [0..1]
-  --pxscale PXSCALE     Desktop pixel scale (set to 0.5 if using OSX with retina display)
+  --pxscale PXSCALE     A scale factor to apply between logical and physical pixels in addition to the actual scale factor determined by the backend.
   --wireframe           Render surface in wireframe
   --no-wireframe        Render shaded surface
   --savexyz             Save mapping between image pixels and 3D coordinates as numpy data file
@@ -72,7 +67,6 @@ optional arguments:
                         Delete the produced frames after running ffmpeg
   --ffmpeg-fps FFMPEG_FPS
                         Sequence framerate
-
 ```
 
 
@@ -83,8 +77,6 @@ $ python wassncplot.py ./wass_20140327_0910/3D/wass__20140327_091000.nc ./out
 ```
 
 Will render the sequence stored in  ```./wass_20140327_0910/3D/wass__20140327_091000.nc``` to the directory ```./out```.
-
-*** Note for OSX users: *** If using retina display you may get uncorrect results. To solve this, try setting ```--pixscale 0.5```
 
 
 ## License
