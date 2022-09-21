@@ -18,7 +18,7 @@ classifiers = [
     "Development Status :: 4 - Beta"
 ]
 dependencies = [
-    "numpy", "scipy", "pyopengl", "PyQt6", "matplotlib", "vispy", "tqdm", "opencv-python>=4.0", "netcdf4"
+    "numpy", "scipy", "pyopengl", "PyQt6; platform_system!='Linux'", "matplotlib", "vispy", "tqdm", "opencv-python>=4.0", "netcdf4"
 ]
 dynamic = ["version"]
 
