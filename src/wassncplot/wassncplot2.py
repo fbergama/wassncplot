@@ -12,7 +12,7 @@ import glob
 import scipy.io
 
 
-VERSION="2.0.4"
+VERSION="2.0.6"
 
 
 
@@ -34,6 +34,7 @@ def wassncplot_main():
     parser.add_argument("--zmax", type=float, help="Maximum 3D point elevation (used for colorbar limits)")
     parser.add_argument("--alpha", default=0.5, type=float, help="Surface transparency [0..1]")
     parser.add_argument("--pxscale", default=1, type=int, help="A scale factor to apply between logical and physical pixels in addition to the actual scale factor determined by the backend.")
+    parser.add_argument("--text_prefix", default="", help="Bottom overlay text prefix")
     parser.add_argument("--wireframe", dest="wireframe", action="store_true", help="Render surface in wireframe")
     parser.add_argument("--no-wireframe", dest="wireframe", action="store_false", help="Render shaded surface")
     parser.add_argument("--savexyz", dest="savexyz", action="store_true", help="Save mapping between image pixels and 3D coordinates as numpy data file")
@@ -133,6 +134,10 @@ def wassncplot_main():
 
         img = (img*255).astype( np.uint8 )
         img = cv.cvtColor( img, cv.COLOR_RGB2BGR )
+        img[(img.shape[0]-20):,:,:] *= 2
+        img[(img.shape[0]-20):,:,:] //= 3
+
+        cv.putText( img, "%s frame %d"%(args.text_prefix,image_idx), (5,img.shape[0]-5), cv.FONT_HERSHEY_DUPLEX, 0.5, color=(255,255,255))
         cv.imwrite('%s/%08d_grid.png'%(outdir,image_idx), img )
 
         if args.saveimg:
