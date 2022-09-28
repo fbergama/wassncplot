@@ -12,7 +12,7 @@ import glob
 import scipy.io
 
 
-VERSION="2.0.6"
+VERSION="2.0.7"
 
 
 
@@ -141,7 +141,7 @@ def wassncplot_main():
         cv.imwrite('%s/%08d_grid.png'%(outdir,image_idx), img )
 
         if args.saveimg:
-            cv.imwrite('%s/%08d.png'%(outdir,image_idx), I0u )
+            cv.imwrite('%s/%08d.png'%(outdir,image_idx), I0 )
 
         data_idx += args.step_data_index
 
