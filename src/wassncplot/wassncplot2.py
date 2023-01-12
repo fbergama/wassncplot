@@ -12,7 +12,7 @@ import glob
 import scipy.io
 
 
-VERSION="2.0.7"
+VERSION="2.0.8"
 
 
 
@@ -36,7 +36,9 @@ def wassncplot_main():
     parser.add_argument("--pxscale", default=1, type=int, help="A scale factor to apply between logical and physical pixels in addition to the actual scale factor determined by the backend.")
     parser.add_argument("--text_prefix", default="", help="Bottom overlay text prefix")
     parser.add_argument("--wireframe", dest="wireframe", action="store_true", help="Render surface in wireframe")
+    parser.add_argument("--upscale2x", dest="upscale2x", action="store_true", help="Upscale the input image before rendering")
     parser.add_argument("--no-wireframe", dest="wireframe", action="store_false", help="Render shaded surface")
+    parser.add_argument("--no-textoverlay", dest="textoverlay", action="store_false", help="Add text overlay at the bottom of the frame")
     parser.add_argument("--savexyz", dest="savexyz", action="store_true", help="Save mapping between image pixels and 3D coordinates as numpy data file")
     parser.add_argument("--saveimg", dest="saveimg", action="store_true", help="Save the undistorted image (without the superimposed grid)")
     parser.add_argument("--ffmpeg", dest="ffmpeg", action="store_true", help="Call ffmpeg to create a sequence video file")
@@ -115,7 +117,8 @@ def wassncplot_main():
     for image_idx in pbar:
 
         I0 = cv.imdecode( rootgrp["cam0images"][image_idx], cv.IMREAD_GRAYSCALE )
-        #I0 = cv.resize( I0, dsize=None, fx=2, fy=2)
+        if args.upscale2x:
+            I0 = cv.pyrUp(I0)
 
         if waveview is None:
             waveview = WaveView( title="Wave field", width=I0.shape[1], height=I0.shape[0], wireframe=args.wireframe, pixel_scale=args.pxscale )
@@ -134,10 +137,12 @@ def wassncplot_main():
 
         img = (img*255).astype( np.uint8 )
         img = cv.cvtColor( img, cv.COLOR_RGB2BGR )
-        img[(img.shape[0]-20):,:,:] *= 2
-        img[(img.shape[0]-20):,:,:] //= 3
 
-        cv.putText( img, "%s frame %d"%(args.text_prefix,image_idx), (5,img.shape[0]-5), cv.FONT_HERSHEY_DUPLEX, 0.5, color=(255,255,255))
+        if args.textoverlay:
+            img[(img.shape[0]-20):,:,:] //= 3
+            img[(img.shape[0]-20):,:,:] *= 2
+            cv.putText( img, "%s frame %d"%(args.text_prefix,image_idx), (5,img.shape[0]-5), cv.FONT_HERSHEY_DUPLEX, 0.5, color=(255,255,255))
+
         cv.imwrite('%s/%08d_grid.png'%(outdir,image_idx), img )
 
         if args.saveimg:
