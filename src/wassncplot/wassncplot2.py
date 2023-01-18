@@ -12,30 +12,30 @@ import glob
 import scipy.io
 
 
-VERSION="2.0.8"
+VERSION="2.1.0"
 
 
 
 def wassncplot_main():
 
     print(" wassncplot v.", VERSION )
-    print("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\nCopyright (C) Filippo Bergamasco 2022 \n")
+    print("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\nCopyright (C) Filippo Bergamasco 2023 \n")
 
 
     parser = argparse.ArgumentParser()
     parser.add_argument("ncfile", help="Input NetCDF4 file")
-    parser.add_argument("out", help="Where to store the produced images")
+    parser.add_argument("out", help="Output directory where the produced images will be stored")
     parser.add_argument("-f", "--first_index", default=0, type=int, help="First data index to process")
     parser.add_argument("-l", "--last_index", default=-1, type=int, help="Last data index to process (-1 to process all the frames)")
     parser.add_argument("-s", "--step_index", default=1, type=int, help="Sequence step")
     parser.add_argument("-sd", "--step_data_index", default=1, type=int, help="Sequence data step")
-    parser.add_argument("-b", "--baseline", type=float, help="Baseline of the stereo system (use this option to override the baseline value stored in the netcdf file)")
+    parser.add_argument("-b", "--baseline", type=float, help="Baseline of the stereo system (use this option to override the baseline value stored in the NetCDF file)")
     parser.add_argument("--zmin", type=float, help="Minimum 3D point elevation (used for colorbar limits)")
     parser.add_argument("--zmax", type=float, help="Maximum 3D point elevation (used for colorbar limits)")
-    parser.add_argument("--alpha", default=0.5, type=float, help="Surface transparency [0..1]")
-    parser.add_argument("--pxscale", default=1, type=int, help="A scale factor to apply between logical and physical pixels in addition to the actual scale factor determined by the backend.")
+    parser.add_argument("--alpha", default=0.5, type=float, help="Surface transparency [0..1] (default 0.5)")
+    parser.add_argument("--pxscale", default=1, type=int, help="A scale factor to apply between logical and physical pixels in addition to the actual scale factor determined by the backend. (default 1)")
     parser.add_argument("--text_prefix", default="", help="Bottom overlay text prefix")
-    parser.add_argument("--wireframe", dest="wireframe", action="store_true", help="Render surface in wireframe")
+    parser.add_argument("--wireframe", dest="wireframe", action="store_true", help="Render surface in wireframe (default)")
     parser.add_argument("--upscale2x", dest="upscale2x", action="store_true", help="Upscale the input image before rendering")
     parser.add_argument("--no-wireframe", dest="wireframe", action="store_false", help="Render shaded surface")
     parser.add_argument("--no-textoverlay", dest="textoverlay", action="store_false", help="Add text overlay at the bottom of the frame")
@@ -113,6 +113,7 @@ def wassncplot_main():
     pbar = tqdm( range(args.first_index, nframes, args.step_index), file=sys.stdout, unit="frames" )
 
     data_idx = args.first_index
+    output_image_size = None
 
     for image_idx in pbar:
 
@@ -145,6 +146,9 @@ def wassncplot_main():
 
         cv.imwrite('%s/%08d_grid.png'%(outdir,image_idx), img )
 
+        if output_image_size is None:
+            output_image_size = (img.shape[1],img.shape[0])
+
         if args.saveimg:
             cv.imwrite('%s/%08d.png'%(outdir,image_idx), I0 )
 
@@ -158,7 +162,10 @@ def wassncplot_main():
         if os.name == "nt":
             ffmpeg_exe += ".exe"
 
-        callarr = [ffmpeg_exe, "-y", "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%08d_grid.png"%(outdir), "-c:v", "libx264", "-vf", 'fps=25,format=yuv420p,scale=614x514', "-preset", "slow", "-crf", "22", "%s/%s.mp4"%(outdir,outname) ]
+        size_ratio = 720.0/float(output_image_size[1])
+        new_w = int(output_image_size[0]*size_ratio)
+        new_w += new_w%2
+        callarr = [ffmpeg_exe, "-y", "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%08d_grid.png"%(outdir), "-c:v", "libx264", "-vf", 'fps=25,format=yuv420p,scale=%dx720'%(new_w), "-preset", "slow", "-crf", "22", "%s/%s.mp4"%(outdir,outname) ]
 
         print("Calling ", callarr)
         subprocess.run(callarr)
