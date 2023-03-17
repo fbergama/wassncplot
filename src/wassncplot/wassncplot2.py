@@ -12,7 +12,7 @@ import glob
 import scipy.io
 
 
-VERSION="2.1.0"
+VERSION="2.1.1"
 
 
 
@@ -37,6 +37,7 @@ def wassncplot_main():
     parser.add_argument("--text_prefix", default="", help="Bottom overlay text prefix")
     parser.add_argument("--wireframe", dest="wireframe", action="store_true", help="Render surface in wireframe (default)")
     parser.add_argument("--upscale2x", dest="upscale2x", action="store_true", help="Upscale the input image before rendering")
+    parser.add_argument("--applymask", dest="applymask", action="store_true", help="Apply user-defined mask if available")
     parser.add_argument("--no-wireframe", dest="wireframe", action="store_false", help="Render shaded surface")
     parser.add_argument("--no-textoverlay", dest="textoverlay", action="store_false", help="Add text overlay at the bottom of the frame")
     parser.add_argument("--savexyz", dest="savexyz", action="store_true", help="Save mapping between image pixels and 3D coordinates as numpy data file")
@@ -121,6 +122,12 @@ def wassncplot_main():
         if args.upscale2x:
             I0 = cv.pyrUp(I0)
 
+        if args.applymask:
+            I0mask = cv.imdecode( rootgrp["cam0masks"][image_idx], cv.IMREAD_GRAYSCALE )
+            I0mask = np.expand_dims(cv.resize( I0mask, (I0.shape[1],I0.shape[0]), interpolation=cv.INTER_NEAREST ), axis=-1 )
+        else:
+            I0mask = np.array([[[1]]],dtype=np.uint8)
+
         if waveview is None:
             waveview = WaveView( title="Wave field", width=I0.shape[1], height=I0.shape[0], wireframe=args.wireframe, pixel_scale=args.pxscale )
             waveview.setup_field( XX, YY, P0plane.T )
@@ -137,6 +144,7 @@ def wassncplot_main():
             scipy.io.savemat( '%s/%08d'%(outdir,image_idx), {"px_2_3D": img_xyz} )
 
         img = (img*255).astype( np.uint8 )
+        img = (I0mask>0)*img + ((I0mask==0)*np.expand_dims(I0, axis=-1))
         img = cv.cvtColor( img, cv.COLOR_RGB2BGR )
 
         if args.textoverlay:
