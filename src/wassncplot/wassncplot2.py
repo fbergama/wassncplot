@@ -10,9 +10,10 @@ import os
 import argparse
 import glob
 import scipy.io
+from scipy.interpolate import LinearNDInterpolator
 
 
-VERSION="2.1.1"
+VERSION="2.2.0"
 
 
 
@@ -41,6 +42,8 @@ def wassncplot_main():
     parser.add_argument("--no-wireframe", dest="wireframe", action="store_false", help="Render shaded surface")
     parser.add_argument("--no-textoverlay", dest="textoverlay", action="store_false", help="Add text overlay at the bottom of the frame")
     parser.add_argument("--savexyz", dest="savexyz", action="store_true", help="Save mapping between image pixels and 3D coordinates as numpy data file")
+    parser.add_argument("--create-texture", dest="createtx", action="store_true", help="Compute sea surface radiance for each grid point and store it into the input NetCDF file.")
+    parser.add_argument("--save-texture", dest="savetx", action="store_true", help="Save each sea surface radiance texture to a png image (data is also stored in the NetCDF)")
     parser.add_argument("--saveimg", dest="saveimg", action="store_true", help="Save the undistorted image (without the superimposed grid)")
     parser.add_argument("--ffmpeg", dest="ffmpeg", action="store_true", help="Call ffmpeg to create a sequence video file")
     parser.add_argument("--ffmpeg-delete-frames", dest="ffmpegdelete", action="store_true", help="Delete the produced frames after running ffmpeg")
@@ -57,8 +60,8 @@ def wassncplot_main():
         print("Output renderings and data will be saved in: ", outdir)
 
 
-    print("Opening netcdf file ", args.ncfile)
-    rootgrp = Dataset( args.ncfile, mode="r")
+    print("Opening NetCDF file ", args.ncfile)
+    rootgrp = Dataset( args.ncfile, mode="a" if args.createtx else "r" )
 
     if args.baseline != None:
         stereo_baseline = args.baseline
@@ -110,9 +113,23 @@ def wassncplot_main():
 
     waveview = None
 
+
+    # Create a new radiance variable if not existing in the input NetCDF file
+    #
+    if args.createtx:
+        if not "radiance" in rootgrp.variables:
+            radiance = rootgrp.createVariable("radiance","u8",( rootgrp.dimensions["count"], 
+                                                                rootgrp.dimensions["X"], 
+                                                                rootgrp.dimensions["Y"]),
+                                                                fill_value=0 )
+            radiance.long_name = "Sea surface radiance for each grid point"
+
+
+
+    # Main processing loop
+    #
     print("Rendering grid data...")
     pbar = tqdm( range(args.first_index, nframes, args.step_index), file=sys.stdout, unit="frames" )
-
     data_idx = args.first_index
     output_image_size = None
 
@@ -139,6 +156,32 @@ def wassncplot_main():
         #ZZ_data[mask]=ZZ_dil
 
         img, img_xyz = waveview.render( I0, ZZ_data )
+
+        #%%
+        if args.createtx:
+            if not "radiance" in rootgrp.variables:
+                radiance = rootgrp.createVariable("radiance","u8",( rootgrp.dimensions["count"], 
+                                                                    rootgrp.dimensions["X"], 
+                                                                    rootgrp.dimensions["Y"]),
+                                                                    fill_value=0 )
+                radiance.long_name = "Sea surface radiance for each grid point"
+
+
+            interp = LinearNDInterpolator( np.reshape( img_xyz[:,:,0:2], [-1,2]), I0.flatten(), 0 )
+            tx = interp( XX, YY ).astype( np.uint8 )
+
+            # Add texture to NetCDF
+            (rootgrp["radiance"])[image_idx,:,:] = np.expand_dims( tx, axis=0 )
+
+            # Optional: save to a png image
+            if args.savetx:
+                cv.imwrite( "%s/radiance_%08d.png"%(outdir,image_idx), tx )
+
+
+        
+
+
+        #%% 
 
         if args.savexyz:
             scipy.io.savemat( '%s/%08d'%(outdir,image_idx), {"px_2_3D": img_xyz} )
@@ -182,4 +225,7 @@ def wassncplot_main():
             img_files = glob.glob( "%s/*.png"%outdir )
             for imgfile in img_files:
                 os.remove( imgfile )
+
+
+    rootgrp.close()
 
