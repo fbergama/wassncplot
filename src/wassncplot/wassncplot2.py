@@ -13,7 +13,7 @@ import scipy.io
 from scipy.interpolate import LinearNDInterpolator
 
 
-VERSION="2.2.0"
+VERSION="2.2.1"
 
 
 
