@@ -32,36 +32,60 @@ WASSncplot is a command-line tool. You can get a description of the available pr
 arguments with the following command: 
 
 ```
- wassncplot v. 2.0.4
+ wassncplot v. 2.2.1
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-Copyright (C) Filippo Bergamasco 2022
+Copyright (C) Filippo Bergamasco 2023 
 
-usage: __main__.py [-h] [-f FIRST_INDEX] [-l LAST_INDEX] [-s STEP_INDEX] [-sd STEP_DATA_INDEX] [-b BASELINE] [--zmin ZMIN] [--zmax ZMAX] [--alpha ALPHA] [--pxscale PXSCALE] [--wireframe] [--no-wireframe] [--savexyz] [--saveimg] [--ffmpeg] [--ffmpeg-delete-frames] [--ffmpeg-fps FFMPEG_FPS] ncfile out
+usage: wassncplot [-h] [-f FIRST_INDEX] [-l LAST_INDEX] [-s STEP_INDEX]
+                  [-sd STEP_DATA_INDEX] [-b BASELINE] [--zmin ZMIN]
+                  [--zmax ZMAX] [--alpha ALPHA] [--pxscale PXSCALE]
+                  [--text_prefix TEXT_PREFIX] [--wireframe] [--upscale2x]
+                  [--applymask] [--no-wireframe] [--no-textoverlay]
+                  [--savexyz] [--create-texture] [--save-texture] [--saveimg]
+                  [--ffmpeg] [--ffmpeg-delete-frames]
+                  [--ffmpeg-fps FFMPEG_FPS]
+                  ncfile out
 
 positional arguments:
   ncfile                Input NetCDF4 file
-  out                   Where to store the produced images
+  out                   Output directory where the produced images will be
+                        stored
 
 optional arguments:
   -h, --help            show this help message and exit
   -f FIRST_INDEX, --first_index FIRST_INDEX
                         First data index to process
   -l LAST_INDEX, --last_index LAST_INDEX
-                        Last data index to process (-1 to process all the frames)
+                        Last data index to process (-1 to process all the
+                        frames)
   -s STEP_INDEX, --step_index STEP_INDEX
                         Sequence step
   -sd STEP_DATA_INDEX, --step_data_index STEP_DATA_INDEX
                         Sequence data step
   -b BASELINE, --baseline BASELINE
-                        Baseline of the stereo system (use this option to override the baseline value stored in the netcdf file)
+                        Baseline of the stereo system (use this option to
+                        override the baseline value stored in the NetCDF file)
   --zmin ZMIN           Minimum 3D point elevation (used for colorbar limits)
   --zmax ZMAX           Maximum 3D point elevation (used for colorbar limits)
-  --alpha ALPHA         Surface transparency [0..1]
-  --pxscale PXSCALE     A scale factor to apply between logical and physical pixels in addition to the actual scale factor determined by the backend.
-  --wireframe           Render surface in wireframe
+  --alpha ALPHA         Surface transparency [0..1] (default 0.5)
+  --pxscale PXSCALE     A scale factor to apply between logical and physical
+                        pixels in addition to the actual scale factor
+                        determined by the backend. (default 1)
+  --text_prefix TEXT_PREFIX
+                        Bottom overlay text prefix
+  --wireframe           Render surface in wireframe (default)
+  --upscale2x           Upscale the input image before rendering
+  --applymask           Apply user-defined mask if available
   --no-wireframe        Render shaded surface
-  --savexyz             Save mapping between image pixels and 3D coordinates as numpy data file
-  --saveimg             Save the undistorted image (without the superimposed grid)
+  --no-textoverlay      Add text overlay at the bottom of the frame
+  --savexyz             Save mapping between image pixels and 3D coordinates
+                        as numpy data file
+  --create-texture      Compute sea surface radiance for each grid point and
+                        store it into the input NetCDF file.
+  --save-texture        Save each sea surface radiance texture to a png image
+                        (data is also stored in the NetCDF)
+  --saveimg             Save the undistorted image (without the superimposed
+                        grid)
   --ffmpeg              Call ffmpeg to create a sequence video file
   --ffmpeg-delete-frames
                         Delete the produced frames after running ffmpeg
