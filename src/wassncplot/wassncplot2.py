@@ -13,7 +13,7 @@ import scipy.io
 from scipy.interpolate import LinearNDInterpolator
 
 
-VERSION="2.2.1"
+VERSION="2.2.2"
 
 
 
@@ -46,6 +46,7 @@ def wassncplot_main():
     parser.add_argument("--save-texture", dest="savetx", action="store_true", help="Save each sea surface radiance texture to a png image (data is also stored in the NetCDF)")
     parser.add_argument("--saveimg", dest="saveimg", action="store_true", help="Save the undistorted image (without the superimposed grid)")
     parser.add_argument("--ffmpeg", dest="ffmpeg", action="store_true", help="Call ffmpeg to create a sequence video file")
+    parser.add_argument("--gif", dest="gif", action="store_true", help="Create an animated GIF sequence")
     parser.add_argument("--ffmpeg-delete-frames", dest="ffmpegdelete", action="store_true", help="Delete the produced frames after running ffmpeg")
     parser.add_argument("--ffmpeg-fps", dest="ffmpeg_fps", default=10.0, type=float, help="Sequence framerate")
     parser.set_defaults(wireframe=True)
@@ -205,7 +206,7 @@ def wassncplot_main():
 
         data_idx += args.step_data_index
 
-    if args.ffmpeg:
+    if args.ffmpeg or args.gif:
         import subprocess
         _, outname = os.path.split(args.ncfile)
 
@@ -216,7 +217,11 @@ def wassncplot_main():
         size_ratio = 720.0/float(output_image_size[1])
         new_w = int(output_image_size[0]*size_ratio)
         new_w += new_w%2
-        callarr = [ffmpeg_exe, "-y", "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%08d_grid.png"%(outdir), "-c:v", "libx264", "-vf", 'fps=25,format=yuv420p,scale=%dx720'%(new_w), "-preset", "slow", "-crf", "22", "%s/%s.mp4"%(outdir,outname) ]
+
+        if args.gif:
+            callarr = [ffmpeg_exe, "-y", "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%08d_grid.png"%(outdir), "-vf", "scale=640:-1", "-preset", "slow", "-crf", "22", "%s/%s.gif"%(outdir,outname) ]
+        else:
+            callarr = [ffmpeg_exe, "-y", "-r","%d"%args.ffmpeg_fps, "-i" ,"%s/%%08d_grid.png"%(outdir), "-c:v", "libx264", "-vf", 'fps=25,format=yuv420p,scale=%dx720'%(new_w), "-preset", "slow", "-crf", "22", "%s/%s.mp4"%(outdir,outname) ]
 
         print("Calling ", callarr)
         subprocess.run(callarr)
