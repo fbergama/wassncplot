@@ -13,7 +13,7 @@ import scipy.io
 from scipy.interpolate import LinearNDInterpolator
 
 
-VERSION="2.2.2"
+VERSION="2.2.3"
 
 
 
@@ -36,6 +36,7 @@ def wassncplot_main():
     parser.add_argument("--alpha", default=0.5, type=float, help="Surface transparency [0..1] (default 0.5)")
     parser.add_argument("--pxscale", default=1, type=int, help="A scale factor to apply between logical and physical pixels in addition to the actual scale factor determined by the backend. (default 1)")
     parser.add_argument("--text_prefix", default="", help="Bottom overlay text prefix")
+    parser.add_argument("--zeromean", dest="zeromean", action="store_true", help="subtract the mean value of every grid point before rendering")
     parser.add_argument("--wireframe", dest="wireframe", action="store_true", help="Render surface in wireframe (default)")
     parser.add_argument("--upscale2x", dest="upscale2x", action="store_true", help="Upscale the input image before rendering")
     parser.add_argument("--applymask", dest="applymask", action="store_true", help="Apply user-defined mask if available")
@@ -126,6 +127,24 @@ def wassncplot_main():
             radiance.long_name = "Sea surface radiance for each grid point"
 
 
+    M = np.squeeze( np.array( ZZ[0,:,:] )*0.0 )
+    if args.zeromean:
+        print("Computing mean value for each grid point...")
+        pbar = tqdm( range(0,ZZ.shape[0]), file=sys.stdout, unit="frames" )
+        
+        n = 0.0
+        for ii in pbar:
+            ZZ_data = np.squeeze( np.array( ZZ[ii,:,:] ) )/1000.0 - zmean
+            M += ZZ_data
+            n += 1.0
+        M = M / n
+        #import matplotlib.pyplot as plt
+        #plt.figure()
+        #plt.imshow( M )
+        #plt.colorbar()
+        #plt.savefig("%s/mean.png"%outdir)
+        #plt.close()
+
 
     # Main processing loop
     #
@@ -152,6 +171,8 @@ def wassncplot_main():
             waveview.set_zrange( -zrange/2.0, zrange/2, args.alpha )
 
         ZZ_data = np.squeeze( np.array( ZZ[data_idx,:,:] ) )/1000.0 - zmean
+        if args.zeromean:
+            ZZ_data -= M
         #mask = (ZZ_data == 0.0)
         #ZZ_dil = cv.dilate( ZZ_data, np.ones((3,3)))
         #ZZ_data[mask]=ZZ_dil
