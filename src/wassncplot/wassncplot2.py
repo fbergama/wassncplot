@@ -10,17 +10,17 @@ import os
 import argparse
 import glob
 import scipy.io
-from scipy.interpolate import LinearNDInterpolator, CloughTocher2DInterpolator
+from scipy.interpolate import LinearNDInterpolator#, CloughTocher2DInterpolator
 
 
-VERSION="2.4.0"
+VERSION="2.4.1"
 
 
 
 def wassncplot_main():
 
     print(" wassncplot v.", VERSION )
-    print("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\nCopyright (C) Filippo Bergamasco 2023 \n")
+    print("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\nCopyright (C) Filippo Bergamasco 2024 \n")
 
 
     parser = argparse.ArgumentParser()
@@ -90,6 +90,7 @@ def wassncplot_main():
         stereo_image_index = rootgrp["meta"].stereo_image_index
 
     print("Rendering frames from camera %d"%stereo_image_index )
+    PPlane = P0plane if stereo_image_index == 0 else P1plane
 
     nframes = ZZ.shape[0]
 
@@ -182,7 +183,7 @@ def wassncplot_main():
 
         if waveview is None:
             waveview = WaveView( title="Wave field", width=I0.shape[1], height=I0.shape[0], wireframe=args.wireframe, pixel_scale=args.pxscale )
-            waveview.setup_field( XX, YY, P0plane.T )
+            waveview.setup_field( XX, YY, PPlane.T )
             waveview.set_zrange( -zrange/2.0, zrange/2, args.alpha )
 
         ZZ_data = np.squeeze( np.array( ZZ[data_idx,:,:] ) )/1000.0 - zmean
