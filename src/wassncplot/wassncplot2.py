@@ -10,10 +10,10 @@ import os
 import argparse
 import glob
 import scipy.io
-from scipy.interpolate import LinearNDInterpolator
+from scipy.interpolate import LinearNDInterpolator, CloughTocher2DInterpolator
 
 
-VERSION="2.2.3"
+VERSION="2.4.0"
 
 
 
@@ -41,11 +41,11 @@ def wassncplot_main():
     parser.add_argument("--upscale2x", dest="upscale2x", action="store_true", help="Upscale the input image before rendering")
     parser.add_argument("--applymask", dest="applymask", action="store_true", help="Apply user-defined mask if available")
     parser.add_argument("--no-wireframe", dest="wireframe", action="store_false", help="Render shaded surface")
-    parser.add_argument("--no-textoverlay", dest="textoverlay", action="store_false", help="Add text overlay at the bottom of the frame")
-    parser.add_argument("--savexyz", dest="savexyz", action="store_true", help="Save mapping between image pixels and 3D coordinates as numpy data file")
-    parser.add_argument("--create-texture", dest="createtx", action="store_true", help="Compute sea surface radiance for each grid point and store it into the input NetCDF file.")
-    parser.add_argument("--save-texture", dest="savetx", action="store_true", help="Save each sea surface radiance texture to a png image (data is also stored in the NetCDF)")
-    parser.add_argument("--saveimg", dest="saveimg", action="store_true", help="Save the undistorted image (without the superimposed grid)")
+    parser.add_argument("--no-textoverlay", dest="textoverlay", action="store_false", help="Disable text overlay at the bottom of the frame")
+    parser.add_argument("--savexyz", dest="savexyz", action="store_true", help="Save mapping between image pixels and 3D coordinates as Matlab mat files")
+    parser.add_argument("--save-texture-in-netcdf", dest="createtx", action="store_true", help="Compute sea surface radiance for each grid point and store it into the input NetCDF file.")
+    parser.add_argument("--save-texture-in-img", dest="savetx", action="store_true", help="Compute sea surface radiance for each grid point and store it into a png image.")
+    parser.add_argument("--save-img", dest="saveimg", action="store_true", help="Save the undistorted image (without the superimposed grid)")
     parser.add_argument("--ffmpeg", dest="ffmpeg", action="store_true", help="Call ffmpeg to create a sequence video file")
     parser.add_argument("--gif", dest="gif", action="store_true", help="Create an animated GIF sequence")
     parser.add_argument("--ffmpeg-delete-frames", dest="ffmpegdelete", action="store_true", help="Delete the produced frames after running ffmpeg")
@@ -75,7 +75,22 @@ def wassncplot_main():
     XX = np.array( rootgrp["X_grid"] )/1000.0
     YY = np.array( rootgrp["Y_grid"] )/1000.0
     ZZ = rootgrp["Z"]
-    P0plane = np.array( rootgrp["meta"]["P0plane"] )
+
+
+    P0plane = None
+    P1plane = None
+    stereo_image_index = 0
+
+    if "P0plane" in rootgrp["meta"].variables:
+        P0plane = np.array( rootgrp["meta"]["P0plane"] )
+    if "P1plane" in rootgrp["meta"].variables:
+        P1plane = np.array( rootgrp["meta"]["P1plane"] )
+
+    if "stereo_image_index" in rootgrp["meta"].ncattrs():
+        stereo_image_index = rootgrp["meta"].stereo_image_index
+
+    print("Rendering frames from camera %d"%stereo_image_index )
+
     nframes = ZZ.shape[0]
 
     Iw, Ih = rootgrp["meta"].image_width, rootgrp["meta"].image_height
@@ -180,42 +195,46 @@ def wassncplot_main():
         img, img_xyz = waveview.render( I0, ZZ_data )
 
         #%%
-        if args.createtx:
-            if not "radiance" in rootgrp.variables:
-                radiance = rootgrp.createVariable("radiance","u8",( rootgrp.dimensions["count"], 
-                                                                    rootgrp.dimensions["X"], 
-                                                                    rootgrp.dimensions["Y"]),
-                                                                    fill_value=0 )
-                radiance.long_name = "Sea surface radiance for each grid point"
-
-
+        if args.createtx or args.savetx:
             interp = LinearNDInterpolator( np.reshape( img_xyz[:,:,0:2], [-1,2]), I0.flatten(), 0 )
+            #interp = CloughTocher2DInterpolator( np.reshape( img_xyz[:,:,0:2], [-1,2]), I0.flatten(), 0 )
             tx = interp( XX, YY ).astype( np.uint8 )
 
-            # Add texture to NetCDF
-            (rootgrp["radiance"])[image_idx,:,:] = np.expand_dims( tx, axis=0 )
+            if args.createtx:
+                if not "radiance" in rootgrp.variables:
+                    radiance = rootgrp.createVariable("radiance","u8",( rootgrp.dimensions["count"], 
+                                                                        rootgrp.dimensions["X"], 
+                                                                        rootgrp.dimensions["Y"]),
+                                                                        fill_value=0 )
+                    radiance.long_name = "Sea surface radiance for each grid point"
+
+
+                (rootgrp["radiance"])[image_idx,:,:] = np.expand_dims( tx, axis=0 )
+
 
             # Optional: save to a png image
             if args.savetx:
                 cv.imwrite( "%s/radiance_%08d.png"%(outdir,image_idx), tx )
 
 
-        
-
 
         #%% 
 
         if args.savexyz:
-            scipy.io.savemat( '%s/%08d'%(outdir,image_idx), {"px_2_3D": img_xyz} )
+            scipy.io.savemat( '%s/%08d.mat'%(outdir,image_idx), {"px_2_3D": img_xyz}, do_compression=True )
 
         img = (img*255).astype( np.uint8 )
         img = (I0mask>0)*img + ((I0mask==0)*np.expand_dims(I0, axis=-1))
         img = cv.cvtColor( img, cv.COLOR_RGB2BGR )
 
         if args.textoverlay:
-            img[(img.shape[0]-20):,:,:] //= 3
-            img[(img.shape[0]-20):,:,:] *= 2
-            cv.putText( img, "%s frame %d"%(args.text_prefix,image_idx), (5,img.shape[0]-5), cv.FONT_HERSHEY_DUPLEX, 0.5, color=(255,255,255))
+            dark_area_h = int(45.0/2048.0*img.shape[0])
+
+            img[(img.shape[0]-dark_area_h):,:,:] //= 3
+            img[(img.shape[0]-dark_area_h):,:,:] *= 2
+
+            texth = 1.5/2048*img.shape[0]
+            cv.putText( img, "%s Frame %d"%(args.text_prefix,image_idx), (5,img.shape[0]-5), cv.FONT_HERSHEY_DUPLEX, texth, color=(255,255,255))
 
         cv.imwrite('%s/%08d_grid.png'%(outdir,image_idx), img )
 
