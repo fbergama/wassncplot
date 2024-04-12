@@ -13,7 +13,7 @@ import scipy.io
 from scipy.interpolate import LinearNDInterpolator#, CloughTocher2DInterpolator
 
 
-VERSION="2.4.1"
+VERSION="2.5.0"
 
 
 
@@ -36,6 +36,7 @@ def wassncplot_main():
     parser.add_argument("--alpha", default=0.5, type=float, help="Surface transparency [0..1] (default 0.5)")
     parser.add_argument("--pxscale", default=1, type=int, help="A scale factor to apply between logical and physical pixels in addition to the actual scale factor determined by the backend. (default 1)")
     parser.add_argument("--text_prefix", default="", help="Bottom overlay text prefix")
+    parser.add_argument("--drawmarker", type=str, dest="markerposradius", default="0,0,0", help="Draws a marker on a surface. Marker coordinates and radius are expressed with a string x,y,radius. For example --drawmarker=-3.0,-123.0,4.0  (note the = sign to avoid conflicts with -)")
     parser.add_argument("--zeromean", dest="zeromean", action="store_true", help="subtract the mean value of every grid point before rendering")
     parser.add_argument("--wireframe", dest="wireframe", action="store_true", help="Render surface in wireframe (default)")
     parser.add_argument("--upscale2x", dest="upscale2x", action="store_true", help="Upscale the input image before rendering")
@@ -161,10 +162,15 @@ def wassncplot_main():
         #plt.savefig("%s/mean.png"%outdir)
         #plt.close()
 
+    markervals = np.fromstring( args.markerposradius, count=3,sep=",",dtype=float)
+    draw_marker = False
+    if not np.allclose(markervals,[0,0,0]):
+        print("Drawing a marker at: ", markervals )
+        draw_marker = True
 
     # Main processing loop
     #
-    print("Rendering grid data...")
+    print("Rendering...")
     pbar = tqdm( range(args.first_index, nframes, args.step_index), file=sys.stdout, unit="frames" )
     data_idx = args.first_index
     output_image_size = None
@@ -236,6 +242,24 @@ def wassncplot_main():
 
             texth = 1.5/2048*img.shape[0]
             cv.putText( img, "%s Frame %d"%(args.text_prefix,image_idx), (5,img.shape[0]-5), cv.FONT_HERSHEY_DUPLEX, texth, color=(255,255,255))
+
+
+        if draw_marker:
+            def _drawmarker( img, marker_x, marker_y, marker_radius ):
+                aux = np.arange(5,dtype=float)/5.0*np.pi*2
+                p3d = np.vstack([np.cos(aux)*marker_radius + marker_x, np.sin(aux)*marker_radius + marker_y, aux*0, aux*0+1])
+                toNorm = np.array( [[ 2.0/I0.shape[1], 0     , -1, 0],
+                                    [ 0     , 2.0/I0.shape[0], -1, 0],
+                                    [ 0,      0,       1, 0],
+                                    [ 0,      0,       0, 1]], dtype=float )
+                toNormI = np.linalg.inv(toNorm)
+                p2d = toNormI @ PPlane @ p3d
+                p2d = p2d[:2,:] / p2d[2,:]
+                ell = cv.fitEllipse( p2d.T.astype(np.float32) )
+                cv.ellipse( img, ell, (0,0,0), 9, cv.LINE_AA )
+                cv.ellipse( img, ell, (255,255,255), 5, cv.LINE_AA )
+            _drawmarker( img, marker_x=markervals[0], marker_y=markervals[1], marker_radius=markervals[2] )
+            del _drawmarker
 
         cv.imwrite('%s/%08d_grid.png'%(outdir,image_idx), img )
 
