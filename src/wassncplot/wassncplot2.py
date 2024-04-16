@@ -10,10 +10,10 @@ import os
 import argparse
 import glob
 import scipy.io
-from scipy.interpolate import LinearNDInterpolator#, CloughTocher2DInterpolator
+from scipy.interpolate import LinearNDInterpolator, griddata
 
 
-VERSION="2.5.0"
+VERSION="2.5.1"
 
 
 
@@ -77,6 +77,7 @@ def wassncplot_main():
     YY = np.array( rootgrp["Y_grid"] )/1000.0
     ZZ = rootgrp["Z"]
 
+    Iw, Ih = rootgrp["meta"].image_width, rootgrp["meta"].image_height
 
     P0plane = None
     P1plane = None
@@ -93,9 +94,16 @@ def wassncplot_main():
     print("Rendering frames from camera %d"%stereo_image_index )
     PPlane = P0plane if stereo_image_index == 0 else P1plane
 
+    toNorm = np.array( [[ 2.0/Iw, 0     , -1, 0],
+                        [ 0     , 2.0/Ih, -1, 0],
+                        [ 0,      0,       1, 0],
+                        [ 0,      0,       0, 1]], dtype=float )
+    toNormI = np.linalg.inv(toNorm)
+    Pcam = toNormI @ PPlane 
+
+
     nframes = ZZ.shape[0]
 
-    Iw, Ih = rootgrp["meta"].image_width, rootgrp["meta"].image_height
 
     if args.zmin is None:
         try:
@@ -245,20 +253,26 @@ def wassncplot_main():
 
 
         if draw_marker:
-            def _drawmarker( img, marker_x, marker_y, marker_radius ):
-                aux = np.arange(5,dtype=float)/5.0*np.pi*2
+            def _drawmarker( img, marker_x, marker_y, marker_radius, XX, YY, ZZ, Pcam ):
+                aux = np.arange(50,dtype=float)/50.0*np.pi*2
                 p3d = np.vstack([np.cos(aux)*marker_radius + marker_x, np.sin(aux)*marker_radius + marker_y, aux*0, aux*0+1])
-                toNorm = np.array( [[ 2.0/I0.shape[1], 0     , -1, 0],
-                                    [ 0     , 2.0/I0.shape[0], -1, 0],
-                                    [ 0,      0,       1, 0],
-                                    [ 0,      0,       0, 1]], dtype=float )
-                toNormI = np.linalg.inv(toNorm)
-                p2d = toNormI @ PPlane @ p3d
+
+                XXl = np.expand_dims( XX.flatten(), axis= 1 )
+                YYl = np.expand_dims( YY.flatten(), axis= 1 )
+                points = np.concatenate( [XXl,YYl], axis=-1 )
+                p3d[2,:] = griddata( points, ZZ.flatten(), (p3d[0,:], p3d[1,:]), method='nearest')
+
+                p2d = Pcam @ p3d
                 p2d = p2d[:2,:] / p2d[2,:]
-                ell = cv.fitEllipse( p2d.T.astype(np.float32) )
-                cv.ellipse( img, ell, (0,0,0), 9, cv.LINE_AA )
-                cv.ellipse( img, ell, (255,255,255), 5, cv.LINE_AA )
-            _drawmarker( img, marker_x=markervals[0], marker_y=markervals[1], marker_radius=markervals[2] )
+
+                pline = np.expand_dims(p2d.T, axis=1 )
+
+                cv.polylines( img, [pline.astype(int)], isClosed=True, color=(0,0,0), thickness=9, lineType=cv.LINE_AA )
+                cv.polylines( img, [pline.astype(int)], isClosed=True, color=(255,255,255), thickness=5, lineType=cv.LINE_AA )
+                #ell = cv.fitEllipse( p2d.T.astype(np.float32) )
+                #cv.ellipse( img, ell, (0,0,0), 9, cv.LINE_AA )
+                #cv.ellipse( img, ell, (255,255,255), 5, cv.LINE_AA )
+            _drawmarker( img, marker_x=markervals[0], marker_y=markervals[1], marker_radius=markervals[2], XX=XX, YY=YY, ZZ=ZZ_data, Pcam=Pcam )
             del _drawmarker
 
         cv.imwrite('%s/%08d_grid.png'%(outdir,image_idx), img )
