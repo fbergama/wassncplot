@@ -13,7 +13,7 @@ import scipy.io
 from scipy.interpolate import LinearNDInterpolator, griddata
 
 
-VERSION="2.5.1"
+VERSION="2.5.3"
 
 
 
@@ -189,11 +189,6 @@ def wassncplot_main():
         if args.upscale2x:
             I0 = cv.pyrUp(I0)
 
-        if args.applymask:
-            I0mask = cv.imdecode( rootgrp["cam0masks"][image_idx], cv.IMREAD_GRAYSCALE )
-            I0mask = np.expand_dims(cv.resize( I0mask, (I0.shape[1],I0.shape[0]), interpolation=cv.INTER_NEAREST ), axis=-1 )
-        else:
-            I0mask = np.array([[[1]]],dtype=np.uint8)
 
         if waveview is None:
             waveview = WaveView( title="Wave field", width=I0.shape[1], height=I0.shape[0], wireframe=args.wireframe, pixel_scale=args.pxscale )
@@ -207,7 +202,24 @@ def wassncplot_main():
         #ZZ_dil = cv.dilate( ZZ_data, np.ones((3,3)))
         #ZZ_data[mask]=ZZ_dil
 
+
         img, img_xyz = waveview.render( I0, ZZ_data )
+
+
+        # OSX hack for high-dpi display
+        # This shoud be handled when creating the OpenGL window
+        # You may also want to set QT_SCALE_FACTOR=0.5 environment variable
+        if img.shape[0] != I0.shape[0] or img.shape[1] != I0.shape[1]:
+            I0 = cv.resize( I0, (img.shape[1], img.shape[0]) )
+        # end of OSX hack
+        
+
+        if args.applymask:
+            I0mask = cv.imdecode( rootgrp["cam0masks"][image_idx], cv.IMREAD_GRAYSCALE )
+            I0mask = np.expand_dims(cv.resize( I0mask, (I0.shape[1],I0.shape[0]), interpolation=cv.INTER_NEAREST ), axis=-1 )
+        else:
+            I0mask = np.array([[[1]]],dtype=np.uint8)
+
 
         #%%
         if args.createtx or args.savetx:
